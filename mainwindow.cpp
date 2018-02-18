@@ -37,6 +37,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->copyButton,SIGNAL(clicked(bool)),this,SLOT(copy_image()));
     connect(ui->resizeButton,SIGNAL(clicked(bool)),this,SLOT(resize_image()));
     connect(ui->enlargeButton,SIGNAL(clicked(bool)),this,SLOT(enlarge_image()));
+
+    //ampliacion
+    connect(ui->warpButton, SIGNAL(clicked(bool)), this, SLOT(warp_image()));
+    connect(ui->angleDial, SIGNAL(valueChanged(int)), this, SLOT(warp_image()));
+    connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(warp_image()));
+    connect(ui->verticalScrollBar, SIGNAL(valueChanged(int)),this, SLOT(warp_image()));
+    connect(ui->zoomScrollBar, SIGNAL(valueChanged(int)),this, SLOT(warp_image()));
     timer.start(60);
 }
 
@@ -50,6 +57,7 @@ MainWindow::~MainWindow()
     delete imgD;
 
 }
+
 
 void MainWindow::compute()
 {
@@ -249,6 +257,40 @@ void MainWindow::enlarge_image()
             cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fy, fy);
             auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
         }
-    }
+    }    
 }
+
+void MainWindow::warp_image(){
+
+    if(ui->warpButton->isChecked()){
+        //float mt [2][3];
+        int dialValue, horizontalValue, verticalValue, zoomValue;
+        float auxDial;
+        dialValue = ui->angleDial->value();
+        horizontalValue = ui->horizontalScrollBar->value();
+        verticalValue = ui->verticalScrollBar->value();
+        zoomValue = ui->zoomScrollBar->value();
+
+
+
+
+        auxDial = dialValue*2*PI/359;
+        cv::Matx<float, 2, 3> mt(cos(auxDial), sin(auxDial),horizontalValue,-sin(auxDial), cos(auxDial),verticalValue);
+        Size sDest(320, 240);
+        warpAffine(grayImage, destGrayImage, mt, sDest);
+
+        int cols = 320/zoomValue;
+        int rows = 240/zoomValue;
+        int x = 160-cols/2;
+        int y = 120-rows/2;
+
+
+        Mat winDG = destGrayImage(cv::Rect(x, y, cols, rows));
+        cv::resize(winDG, destGrayImage, Size(320,240));
+
+
+    }
+
+}
+
 

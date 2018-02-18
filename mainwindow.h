@@ -14,9 +14,14 @@
 
 #include <rcdraw.h>
 
+#include <math.h>       /* cos */
 
 
 using namespace cv;
+
+const double PI = std::atan(1.0)*4;
+
+
 
 namespace Ui {
     class MainWindow;
@@ -54,6 +59,7 @@ public slots:
     void enlarge_image();
     void selectWindow(QPointF p, int w, int h);
     void deselectWindow();
+    void warp_image();
 
 };
 
