@@ -33,9 +33,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(visorS,SIGNAL(windowSelected(QPointF, int, int)),this,SLOT(selectWindow(QPointF, int, int)));
     connect(visorS,SIGNAL(pressEvent()),this,SLOT(deselectWindow()));
     connect(ui->loadButton,SIGNAL(clicked(bool)),this,SLOT(load_image()));
+    connect(ui->saveButton,SIGNAL(clicked(bool)),this,SLOT(save_image()));
+    connect(ui->copyButton,SIGNAL(clicked(bool)),this,SLOT(copy_image()));
+    connect(ui->resizeButton,SIGNAL(clicked(bool)),this,SLOT(resize_image()));
+    connect(ui->enlargeButton,SIGNAL(clicked(bool)),this,SLOT(enlarge_image()));
     timer.start(60);
-
-
 }
 
 MainWindow::~MainWindow()
@@ -61,6 +63,7 @@ void MainWindow::compute()
 
     }
 
+    //Warping con warpAffine transforma de x,y a otras coord transformando
 
     if(showColorImage)
     {
@@ -151,16 +154,94 @@ void MainWindow::load_image()
     if (fileName.isEmpty())
            return;
     else {
-           QFile file(fileName);
-           if (!file.open(QIODevice::ReadOnly)) {
-               QMessageBox::information(this, tr("Unable to open file"),
-                   file.errorString());
-               return;
-           }
 
+           colorImage = imread(fileName.toStdString(), CV_LOAD_IMAGE_COLOR);
+           cv::resize(colorImage, colorImage, Size(320,240));
+           cvtColor(colorImage, colorImage, CV_BGR2RGB);
+           cvtColor(colorImage, grayImage, CV_BGR2GRAY);
 
-
+           ui->captureButton->setText("Start capture");
+           capture = false;
+           ui->captureButton->setChecked(false);
     }
 }
 
+void MainWindow::save_image()
+{
+    Mat saveImage;
+    if(showColorImage){
+        cvtColor(destColorImage, saveImage, CV_RGB2BGR);
+        //cvtColor(colorImage, saveImage, CV_RGB2BGR);
+
+    }else{
+        cvtColor(destGrayImage, saveImage, CV_GRAY2BGR);
+        //cvtColor(grayImage, saveImage, CV_GRAY2BGR);
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(this,
+           tr("Save File"), "",
+           tr("All Files (*)"));
+    imwrite(fileName.toStdString(), saveImage);
+
+}
+
+void MainWindow::copy_image()
+{
+    if(winSelected){
+        int x = (320-imageWindow.width)/2;
+        int y = (240-imageWindow.height)/2;
+
+        destColorImage.setTo(0); //to put in black
+        Mat winD = destColorImage(cv::Rect(x, y, imageWindow.width, imageWindow.height));
+        Mat(colorImage, imageWindow).copyTo(winD);
+
+        destGrayImage.setTo(0);
+        winD = destGrayImage(cv::Rect(x, y, imageWindow.width, imageWindow.height));
+        Mat(grayImage, imageWindow).copyTo(winD);
+
+    }else {
+        colorImage.copyTo(destColorImage);
+        grayImage.copyTo(destGrayImage);
+    }
+}
+
+void MainWindow::resize_image()
+{
+    if(winSelected){
+        cv::resize(Mat(colorImage, imageWindow), destColorImage, Size(320,240));
+        cv::resize(Mat(grayImage, imageWindow), destGrayImage, Size(320,240));
+    }
+}
+
+void MainWindow::enlarge_image()
+{
+    if(winSelected){
+        destColorImage.setTo(0); //to put in black
+        destGrayImage.setTo(0);
+
+        float fx = 320./imageWindow.width;
+        float fy = 240./imageWindow.height;
+
+        qDebug() << "Fx:" << fx <<"Fy:"<< fy;
+
+        if(fx <= fy){
+            int x = 0;
+            int y = (240-imageWindow.height*fx)/2;
+            Mat winDC = destColorImage(cv::Rect(x, y, 320, imageWindow.height*fx));
+            Mat winDG = destGrayImage(cv::Rect(x, y, 320, imageWindow.height*fx));
+            qDebug() <<"x"<<x<<"y"<<y<< winDC.cols << winDC.rows ;
+            cv::resize(Mat(colorImage, imageWindow), winDC, Size(), fx,fx);
+            cv::resize(Mat(grayImage, imageWindow), winDG, Size(), fx,fx);
+        }else{
+            int x = (320-imageWindow.width*fy)/2;
+            int y = 0;
+            Mat winDC = destColorImage(cv::Rect(x, y, imageWindow.width*fy, 240));
+            Mat winDG = destGrayImage(cv::Rect(x, y, imageWindow.width*fy, 240));
+            qDebug() <<"x"<<x<<"y"<<y<< winDC.cols << winDC.rows ;
+            //Utilizar una imagen auxiliar y copiar el contenido para no perderlo
+            cv::resize(Mat(colorImage, imageWindow), winDC, Size(), fy, fy);
+            cv::resize(Mat(grayImage, imageWindow), winDG, Size(), fy, fy);
+        }
+    }
+}
 

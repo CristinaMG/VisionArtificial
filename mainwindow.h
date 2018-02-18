@@ -48,6 +48,10 @@ public slots:
     void start_stop_capture(bool start);
     void change_color_gray(bool color);
     void load_image();
+    void save_image();
+    void copy_image();
+    void resize_image();
+    void enlarge_image();
     void selectWindow(QPointF p, int w, int h);
     void deselectWindow();
 
