@@ -224,23 +224,30 @@ void MainWindow::enlarge_image()
 
         qDebug() << "Fx:" << fx <<"Fy:"<< fy;
 
+        //Utilizar una imagen auxiliar y copiar el contenido para no perderlo
+        Mat auxDC, auxDG;
         if(fx <= fy){
             int x = 0;
             int y = (240-imageWindow.height*fx)/2;
-            Mat winDC = destColorImage(cv::Rect(x, y, 320, imageWindow.height*fx));
-            Mat winDG = destGrayImage(cv::Rect(x, y, 320, imageWindow.height*fx));
-            qDebug() <<"x"<<x<<"y"<<y<< winDC.cols << winDC.rows ;
-            cv::resize(Mat(colorImage, imageWindow), winDC, Size(), fx,fx);
-            cv::resize(Mat(grayImage, imageWindow), winDG, Size(), fx,fx);
+
+            auxDC.create(imageWindow.height*fx,320,CV_8UC3);
+            auxDG.create(imageWindow.height*fx,320, CV_8UC1);
+
+            cv::resize(Mat(colorImage, imageWindow), auxDC, Size(), fx, fx);
+            auxDC.copyTo(destColorImage(cv::Rect(x, y, auxDC.cols, auxDC.rows)));
+            cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fx, fx);
+            auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
         }else{
             int x = (320-imageWindow.width*fy)/2;
             int y = 0;
-            Mat winDC = destColorImage(cv::Rect(x, y, imageWindow.width*fy, 240));
-            Mat winDG = destGrayImage(cv::Rect(x, y, imageWindow.width*fy, 240));
-            qDebug() <<"x"<<x<<"y"<<y<< winDC.cols << winDC.rows ;
-            //Utilizar una imagen auxiliar y copiar el contenido para no perderlo
-            cv::resize(Mat(colorImage, imageWindow), winDC, Size(), fy, fy);
-            cv::resize(Mat(grayImage, imageWindow), winDG, Size(), fy, fy);
+
+            auxDC.create(240,imageWindow.width*fy,CV_8UC3);
+            auxDG.create(240,imageWindow.width*fy, CV_8UC1);
+
+            cv::resize(Mat(colorImage, imageWindow), auxDC, Size(), fy, fy);
+            auxDC.copyTo(destColorImage(cv::Rect(x, y, auxDC.cols, auxDC.rows)));
+            cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fy, fy);
+            auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
         }
     }
 }

@@ -96,7 +96,7 @@
     <string>Load from File</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
     <bool>false</bool>
@@ -115,7 +115,7 @@
     <string>Save to File</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
     <bool>false</bool>
@@ -134,7 +134,7 @@
     <string>Copy</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
     <bool>false</bool>
@@ -153,7 +153,7 @@
     <string>Resize</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
     <bool>false</bool>
@@ -172,7 +172,7 @@
     <string>Enlarge</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
     <bool>false</bool>
