@@ -38,12 +38,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->resizeButton,SIGNAL(clicked(bool)),this,SLOT(resize_image()));
     connect(ui->enlargeButton,SIGNAL(clicked(bool)),this,SLOT(enlarge_image()));
 
-    //ampliacion
-    connect(ui->warpButton, SIGNAL(clicked(bool)), this, SLOT(warp_image()));
-    connect(ui->angleDial, SIGNAL(valueChanged(int)), this, SLOT(warp_image()));
-    connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(warp_image()));
-    connect(ui->verticalScrollBar, SIGNAL(valueChanged(int)),this, SLOT(warp_image()));
-    connect(ui->zoomScrollBar, SIGNAL(valueChanged(int)),this, SLOT(warp_image()));
     timer.start(60);
 }
 
@@ -70,6 +64,9 @@ void MainWindow::compute()
         cvtColor(colorImage, colorImage, CV_BGR2RGB);
 
     }
+
+    if(ui->warpButton->isChecked())
+        warp_image();
 
     //Warping con warpAffine transforma de x,y a otras coord transformando
 
@@ -262,35 +259,46 @@ void MainWindow::enlarge_image()
 
 void MainWindow::warp_image(){
 
-    if(ui->warpButton->isChecked()){
-        //float mt [2][3];
-        int dialValue, horizontalValue, verticalValue, zoomValue;
-        float auxDial;
+        int dialValue, horizontalValue, verticalValue;
+        float auxDial,zoomValue;
         dialValue = ui->angleDial->value();
         horizontalValue = ui->horizontalScrollBar->value();
         verticalValue = ui->verticalScrollBar->value();
-        zoomValue = ui->zoomScrollBar->value();
+        zoomValue = ui->zoomScrollBar->value()/10.;
 
-
-
-
+        //Warp
         auxDial = dialValue*2*PI/359;
-        cv::Matx<float, 2, 3> mt(cos(auxDial), sin(auxDial),horizontalValue,-sin(auxDial), cos(auxDial),verticalValue);
+
+        cv::Matx<float, 2, 3> mt(cos(auxDial),
+                                 sin(auxDial),
+                                 horizontalValue + 160 -160*cos(auxDial) -120*sin(auxDial),
+                                 -sin(auxDial),
+                                 cos(auxDial),
+                                 verticalValue + 120 +160*sin(auxDial) -120*cos(auxDial));
+
+
+
         Size sDest(320, 240);
         warpAffine(grayImage, destGrayImage, mt, sDest);
+        warpAffine(colorImage, destColorImage, mt, sDest);
 
-        int cols = 320/zoomValue;
-        int rows = 240/zoomValue;
+        //Zoom
+        float cols = 320./zoomValue;
+        float rows = 240./zoomValue;
         int x = 160-cols/2;
         int y = 120-rows/2;
 
-
+        //Gray
         Mat winDG = destGrayImage(cv::Rect(x, y, cols, rows));
-        cv::resize(winDG, destGrayImage, Size(320,240));
+        Mat auxDG;
+        winDG.copyTo(auxDG);
+        cv::resize(auxDG, destGrayImage, Size(320,240));
 
-
-    }
-
+        //Color
+        Mat winDC = destColorImage(cv::Rect(x, y, cols, rows));
+        Mat auxDC;
+        winDC.copyTo(auxDC);
+        cv::resize(auxDC, destColorImage, Size(320,240));
 }
 
 
