@@ -174,19 +174,18 @@ void MainWindow::load_image()
 void MainWindow::save_image()
 {
     Mat saveImage;
-    if(showColorImage){
+    if(showColorImage)
         cvtColor(destColorImage, saveImage, CV_RGB2BGR);
-        //cvtColor(colorImage, saveImage, CV_RGB2BGR);
-
-    }else{
+    else
         cvtColor(destGrayImage, saveImage, CV_GRAY2BGR);
-        //cvtColor(grayImage, saveImage, CV_GRAY2BGR);
-    }
 
     QString fileName = QFileDialog::getSaveFileName(this,
            tr("Save File"), "",
            tr("All Files (*)"));
-    imwrite(fileName.toStdString(), saveImage);
+
+    try{
+        imwrite(fileName.toStdString(), saveImage);
+    }catch(...){}
 
 }
 
@@ -227,8 +226,6 @@ void MainWindow::enlarge_image()
         float fx = 320./imageWindow.width;
         float fy = 240./imageWindow.height;
 
-        qDebug() << "Fx:" << fx <<"Fy:"<< fy;
-
         //Utilizar una imagen auxiliar y copiar el contenido para no perderlo
         Mat auxDC, auxDG;
         if(fx <= fy){
@@ -267,7 +264,7 @@ void MainWindow::warp_image(){
         zoomValue = ui->zoomScrollBar->value()/10.;
 
         //Warp
-        auxDial = dialValue*2*PI/359;
+        auxDial = dialValue*2*PI/360;
 
         cv::Matx<float, 2, 3> mt(cos(auxDial),
                                  sin(auxDial),
