@@ -1,6 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
+
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -32,13 +36,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->colorButton,SIGNAL(clicked(bool)),this,SLOT(change_color_gray(bool)));
     connect(visorS,SIGNAL(windowSelected(QPointF, int, int)),this,SLOT(selectWindow(QPointF, int, int)));
     connect(visorS,SIGNAL(pressEvent()),this,SLOT(deselectWindow()));
+
     connect(ui->loadButton,SIGNAL(clicked(bool)),this,SLOT(load_image()));
     connect(ui->saveButton,SIGNAL(clicked(bool)),this,SLOT(save_image()));
-    connect(ui->copyButton,SIGNAL(clicked(bool)),this,SLOT(copy_image()));
-    connect(ui->resizeButton,SIGNAL(clicked(bool)),this,SLOT(resize_image()));
-    connect(ui->enlargeButton,SIGNAL(clicked(bool)),this,SLOT(enlarge_image()));
+
 
     timer.start(60);
+
+
 }
 
 MainWindow::~MainWindow()
@@ -52,7 +57,6 @@ MainWindow::~MainWindow()
 
 }
 
-
 void MainWindow::compute()
 {
 
@@ -65,10 +69,6 @@ void MainWindow::compute()
 
     }
 
-    if(ui->warpButton->isChecked())
-        warp_image();
-
-    //Warping con warpAffine transforma de x,y a otras coord transformando
 
     if(showColorImage)
     {
@@ -150,6 +150,7 @@ void MainWindow::deselectWindow()
     winSelected = false;
 }
 
+
 void MainWindow::load_image()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
@@ -190,115 +191,45 @@ void MainWindow::save_image()
 
 }
 
-void MainWindow::copy_image()
-{
-    if(winSelected){
-        int x = (320-imageWindow.width)/2;
-        int y = (240-imageWindow.height)/2;
 
-        destColorImage.setTo(0); //to put in black
-        Mat winD = destColorImage(cv::Rect(x, y, imageWindow.width, imageWindow.height));
-        Mat(colorImage, imageWindow).copyTo(winD);
+void MainWindow::transformation_pixel(){
 
-        destGrayImage.setTo(0);
-        winD = destGrayImage(cv::Rect(x, y, imageWindow.width, imageWindow.height));
-        Mat(grayImage, imageWindow).copyTo(winD);
-
-    }else {
-        colorImage.copyTo(destColorImage);
-        grayImage.copyTo(destGrayImage);
-    }
 }
 
-void MainWindow::resize_image()
-{
-    if(winSelected){
-        cv::resize(Mat(colorImage, imageWindow), destColorImage, Size(320,240));
-        cv::resize(Mat(grayImage, imageWindow), destGrayImage, Size(320,240));
-    }
+
+void MainWindow::threshold_image(){
+
+    //valor umbral
+    int valor;
+    threshold(grayImage, destGrayImage, valor, 255, THRESH_BINARY);
 }
 
-void MainWindow::enlarge_image()
-{
-    if(winSelected){
-        destColorImage.setTo(0); //to put in black
-        destGrayImage.setTo(0);
 
-        float fx = 320./imageWindow.width;
-        float fy = 240./imageWindow.height;
+void MainWindow::equalize_hist(){
 
-        qDebug() << "Fx:" << fx <<"Fy:"<< fy;
-
-        //Utilizar una imagen auxiliar y copiar el contenido para no perderlo
-        Mat auxDC, auxDG;
-        if(fx <= fy){
-            int x = 0;
-            int y = (240-imageWindow.height*fx)/2;
-
-            auxDC.create(imageWindow.height*fx,320,CV_8UC3);
-            auxDG.create(imageWindow.height*fx,320, CV_8UC1);
-
-            cv::resize(Mat(colorImage, imageWindow), auxDC, Size(), fx, fx);
-            auxDC.copyTo(destColorImage(cv::Rect(x, y, auxDC.cols, auxDC.rows)));
-            cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fx, fx);
-            auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
-        }else{
-            int x = (320-imageWindow.width*fy)/2;
-            int y = 0;
-
-            auxDC.create(240,imageWindow.width*fy,CV_8UC3);
-            auxDG.create(240,imageWindow.width*fy, CV_8UC1);
-
-            cv::resize(Mat(colorImage, imageWindow), auxDC, Size(), fy, fy);
-            auxDC.copyTo(destColorImage(cv::Rect(x, y, auxDC.cols, auxDC.rows)));
-            cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fy, fy);
-            auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
-        }
-    }    
+     equalizeHist(grayImage, destGrayImage);
 }
 
-void MainWindow::warp_image(){
+void MainWindow::gaussian_blur(){
 
-        int dialValue, horizontalValue, verticalValue;
-        float auxDial,zoomValue;
-        dialValue = ui->angleDial->value();
-        horizontalValue = ui->horizontalScrollBar->value();
-        verticalValue = ui->verticalScrollBar->value();
-        zoomValue = ui->zoomScrollBar->value()/10.;
-
-        //Warp
-        auxDial = dialValue*2*PI/359;
-
-        cv::Matx<float, 2, 3> mt(cos(auxDial),
-                                 sin(auxDial),
-                                 horizontalValue + 160 -160*cos(auxDial) -120*sin(auxDial),
-                                 -sin(auxDial),
-                                 cos(auxDial),
-                                 verticalValue + 120 +160*sin(auxDial) -120*cos(auxDial));
-
-
-
-        Size sDest(320, 240);
-        warpAffine(grayImage, destGrayImage, mt, sDest);
-        warpAffine(colorImage, destColorImage, mt, sDest);
-
-        //Zoom
-        float cols = 320./zoomValue;
-        float rows = 240./zoomValue;
-        int x = 160-cols/2;
-        int y = 120-rows/2;
-
-        //Gray
-        Mat winDG = destGrayImage(cv::Rect(x, y, cols, rows));
-        Mat auxDG;
-        winDG.copyTo(auxDG);
-        cv::resize(auxDG, destGrayImage, Size(320,240));
-
-        //Color
-        Mat winDC = destColorImage(cv::Rect(x, y, cols, rows));
-        Mat auxDC;
-        winDC.copyTo(auxDC);
-        cv::resize(auxDC, destColorImage, Size(320,240));
 }
+
+void MainWindow::median_blur(){
+
+}
+
+void MainWindow::lineal_filter(){
+
+}
+
+void MainWindow::dilatation(){
+
+}
+
+void MainWindow::erosion(){
+
+}
+
+
 
 

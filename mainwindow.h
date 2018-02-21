@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QFileDialog>
-#include <QMessageBox>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -13,19 +12,25 @@
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <rcdraw.h>
+#include <ui_pixelTForm.h>
 
-#include <math.h>       /* cos */
 
 
 using namespace cv;
 
-const double PI = std::atan(1.0)*4;
-
-
-
 namespace Ui {
     class MainWindow;
 }
+
+class PixelTDialog : public QDialog, public Ui::PixelTForm
+{
+     Q_OBJECT
+public:
+     PixelTDialog(QDialog *parent=0) : QDialog(parent){
+       setupUi(this);
+    }
+};
+
 
 class MainWindow : public QMainWindow
 {
@@ -46,20 +51,25 @@ private:
     Mat gray2ColorImage, destGray2ColorImage;
     bool capture, showColorImage, winSelected;
     Rect imageWindow;
-
+    PixelTDialog pixelTDialog;
 
 public slots:
     void compute();
     void start_stop_capture(bool start);
     void change_color_gray(bool color);
-    void load_image();
-    void save_image();
-    void copy_image();
-    void resize_image();
-    void enlarge_image();
     void selectWindow(QPointF p, int w, int h);
     void deselectWindow();
-    void warp_image();
+    void load_image();
+    void save_image();
+
+    void transformation_pixel();
+    void threshold_image();
+    void equalize_hist();
+    void gaussian_blur();
+    void median_blur();
+    void lineal_filter();
+    void dilatation();
+    void erosion();
 
 };
 
