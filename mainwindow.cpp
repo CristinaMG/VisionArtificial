@@ -37,10 +37,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->loadButton,SIGNAL(clicked(bool)),this,SLOT(load_image()));
     connect(ui->saveButton,SIGNAL(clicked(bool)),this,SLOT(save_image()));
 
+    //connect(ui->operationComboBox, SIGNAL(currentTextChanged(QString)),this, SLOT(comboBox_image()));
+
+    connect(ui->pixelTButton, SIGNAL(clicked(bool)),this,SLOT(pixel_image()));
+    connect(ui->kernelButton, SIGNAL(clicked(bool)),this,SLOT(kernel_image()));
+    connect(ui->operOrderButton, SIGNAL(clicked(bool)),this,SLOT(operOrder_image()));
 
     timer.start(60);
-
-
 }
 
 MainWindow::~MainWindow()
@@ -80,6 +83,8 @@ void MainWindow::compute()
         memcpy(imgD->bits(), destGray2ColorImage.data , 320*240*3*sizeof(uchar));
 
     }
+
+    comboBox_image();
 
     if(winSelected)
     {
@@ -184,9 +189,59 @@ void MainWindow::save_image()
     QString fileName = QFileDialog::getSaveFileName(this,
            tr("Save File"), "",
            tr("All Files (*)"));
-    imwrite(fileName.toStdString(), saveImage);
+    try{
+        imwrite(fileName.toStdString(), saveImage);
+    }catch(...){qDebug()<<"Error al guardar imagen";}
 
 }
+
+void MainWindow::comboBox_image(){
+    switch (ui->operationComboBox->currentIndex()) {
+    case 0:
+        transformation_pixel();
+        break;
+    case 1:
+        threshold_image();
+        break;
+    case 2:
+        equalize_hist();
+        break;
+    case 3:
+        gaussian_blur();
+        break;
+    case 4:
+        median_blur();
+        break;
+    case 5:
+        lineal_filter();
+        break;
+    case 6:
+        dilatation();
+        break;
+    case 7:
+        erosion();
+        break;
+    default:
+        break;
+    }
+}
+
+
+void MainWindow::pixel_image(){
+    pixelTDialog.show();
+}
+
+
+void MainWindow::kernel_image(){
+    lFilterDialog.show();
+}
+
+
+void MainWindow::operOrder_image(){
+    operOrderDialog.show();
+}
+
+
 
 
 void MainWindow::transformation_pixel(){
@@ -197,22 +252,21 @@ void MainWindow::transformation_pixel(){
 void MainWindow::threshold_image(){
 
     //valor umbral
-    int valor;
+    int valor = ui->thresholdSpinBox->value();
     threshold(grayImage, destGrayImage, valor, 255, THRESH_BINARY);
 }
 
 
 void MainWindow::equalize_hist(){
-
-     equalizeHist(grayImage, destGrayImage);
+    equalizeHist(grayImage, destGrayImage);
 }
 
 void MainWindow::gaussian_blur(){
-
+    GaussianBlur(grayImage, destGrayImage,Size(3, 3), ui->gaussWidthBox->value()/5, ui->gaussWidthBox->value()/5);
 }
 
 void MainWindow::median_blur(){
-
+    medianBlur(grayImage, destGrayImage, 3);
 }
 
 void MainWindow::lineal_filter(){

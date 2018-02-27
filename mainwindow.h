@@ -13,6 +13,8 @@
 
 #include <rcdraw.h>
 #include <ui_pixelTForm.h>
+#include <ui_operOrderForm.h>
+#include <ui_lFilterForm.h>
 
 
 
@@ -31,6 +33,24 @@ public:
     }
 };
 
+class LFilterDialog : public QDialog, public Ui::LFilterForm
+{
+     Q_OBJECT
+public:
+     LFilterDialog(QDialog *parent=0) : QDialog(parent){
+       setupUi(this);
+    }
+};
+
+
+class OperOrderDialog : public QDialog, public Ui::OperOrderForm
+{
+     Q_OBJECT
+public:
+     OperOrderDialog(QDialog *parent=0) : QDialog(parent){
+       setupUi(this);
+    }
+};
 
 class MainWindow : public QMainWindow
 {
@@ -52,6 +72,8 @@ private:
     bool capture, showColorImage, winSelected;
     Rect imageWindow;
     PixelTDialog pixelTDialog;
+    LFilterDialog lFilterDialog;
+    OperOrderDialog operOrderDialog;
 
 public slots:
     void compute();
@@ -61,6 +83,12 @@ public slots:
     void deselectWindow();
     void load_image();
     void save_image();
+
+    void comboBox_image();
+
+    void pixel_image();
+    void kernel_image();
+    void operOrder_image();
 
     void transformation_pixel();
     void threshold_image();
