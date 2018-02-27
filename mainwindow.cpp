@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent) :
     gray2ColorImage.create(240,320,CV_8UC3);
     destGray2ColorImage.create(240,320,CV_8UC3);
 
+    kernel.create(3,3,CV_32FC1);
+
     connect(&timer,SIGNAL(timeout()),this,SLOT(compute()));
     connect(ui->captureButton,SIGNAL(clicked(bool)),this,SLOT(start_stop_capture(bool)));
     connect(ui->colorButton,SIGNAL(clicked(bool)),this,SLOT(change_color_gray(bool)));
@@ -36,8 +38,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->loadButton,SIGNAL(clicked(bool)),this,SLOT(load_image()));
     connect(ui->saveButton,SIGNAL(clicked(bool)),this,SLOT(save_image()));
-
-    //connect(ui->operationComboBox, SIGNAL(currentTextChanged(QString)),this, SLOT(comboBox_image()));
 
     connect(ui->pixelTButton, SIGNAL(clicked(bool)),this,SLOT(pixel_image()));
     connect(ui->kernelButton, SIGNAL(clicked(bool)),this,SLOT(kernel_image()));
@@ -229,58 +229,94 @@ void MainWindow::comboBox_image(){
 
 void MainWindow::pixel_image(){
     pixelTDialog.show();
+    connect(pixelTDialog.okButton,SIGNAL(clicked(bool)),this,SLOT(closePixel()));
 }
 
+void MainWindow::closePixel(){
+    pixelTDialog.close();
+}
 
 void MainWindow::kernel_image(){
     lFilterDialog.show();
+    connect(lFilterDialog.okButton,SIGNAL(clicked(bool)),this,SLOT(closeKernel()));
 }
 
+void MainWindow::closeKernel(){
+    lFilterDialog.close();
+}
 
 void MainWindow::operOrder_image(){
     operOrderDialog.show();
+    connect(operOrderDialog.okButton,SIGNAL(clicked(bool)),this,SLOT(closeOperOrder()));
 }
 
-
-
+void MainWindow::closeOperOrder(){
+    operOrderDialog.close();
+}
 
 void MainWindow::transformation_pixel(){
 
+    Mat lookUpTable(1, 256, CV_8U);
+    uchar* p = lookUpTable.ptr();
+
+    int i = 0;
+    for(i; i < pixelTDialog.origPixelBox2->value(); ++i)
+        p[i] = i;
+
+    for(i; i < pixelTDialog.origPixelBox3->value(); ++i)
+        p[i] = i;
+
+    for(i; i < 256; ++i)
+        p[i] = i;
+
+    LUT(grayImage, lookUpTable, destGrayImage);
 }
 
-
 void MainWindow::threshold_image(){
-
-    //valor umbral
     int valor = ui->thresholdSpinBox->value();
     threshold(grayImage, destGrayImage, valor, 255, THRESH_BINARY);
 }
-
 
 void MainWindow::equalize_hist(){
     equalizeHist(grayImage, destGrayImage);
 }
 
 void MainWindow::gaussian_blur(){
-    GaussianBlur(grayImage, destGrayImage,Size(3, 3), ui->gaussWidthBox->value()/5, ui->gaussWidthBox->value()/5);
+    GaussianBlur(grayImage, destGrayImage,Size(ui->gaussWidthBox->value(), ui->gaussWidthBox->value()), ui->gaussWidthBox->value()/5., ui->gaussWidthBox->value()/5.);
 }
 
 void MainWindow::median_blur(){
     medianBlur(grayImage, destGrayImage, 3);
 }
 
-void MainWindow::lineal_filter(){
+void MainWindow::read_kernel(){
+    //at(fila, columna)
+    kernel.at<float>(0,0) = lFilterDialog.kernelBox11->value();
+    kernel.at<float>(0,1) = lFilterDialog.kernelBox12->value();
+    kernel.at<float>(0,2) = lFilterDialog.kernelBox13->value();
+    kernel.at<float>(1,0) = lFilterDialog.kernelBox21->value();
+    kernel.at<float>(1,1) = lFilterDialog.kernelBox22->value();
+    kernel.at<float>(1,2) = lFilterDialog.kernelBox23->value();
+    kernel.at<float>(2,0) = lFilterDialog.kernelBox31->value();
+    kernel.at<float>(2,1) = lFilterDialog.kernelBox32->value();
+    kernel.at<float>(2,2) = lFilterDialog.kernelBox33->value();
+}
 
+void MainWindow::lineal_filter(){
+    read_kernel();
+    filter2D(grayImage, destGrayImage, -1, kernel, Point(-1,-1), lFilterDialog.addedVBox->value());
 }
 
 void MainWindow::dilatation(){
-
+    threshold_image();
+    Mat copyDest;
+    destGrayImage.copyTo(copyDest);
+    dilate(copyDest, destGrayImage, Mat());
 }
 
 void MainWindow::erosion(){
-
+    threshold_image();
+    Mat copyDest;
+    destGrayImage.copyTo(copyDest);
+    erode(copyDest, destGrayImage, Mat());
 }
-
-
-
-

@@ -75,6 +75,8 @@ private:
     LFilterDialog lFilterDialog;
     OperOrderDialog operOrderDialog;
 
+    Mat kernel;
+
 public slots:
     void compute();
     void start_stop_capture(bool start);
@@ -87,8 +89,11 @@ public slots:
     void comboBox_image();
 
     void pixel_image();
+    void closePixel();
     void kernel_image();
+    void closeKernel();
     void operOrder_image();
+    void closeOperOrder();
 
     void transformation_pixel();
     void threshold_image();
@@ -99,6 +104,7 @@ public slots:
     void dilatation();
     void erosion();
 
+    void read_kernel();
 };
 
 
