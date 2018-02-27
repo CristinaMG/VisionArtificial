@@ -2,9 +2,6 @@
 #include "ui_mainwindow.h"
 
 
-
-
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -175,18 +172,19 @@ void MainWindow::load_image()
 void MainWindow::save_image()
 {
     Mat saveImage;
-    if(showColorImage)
+    if(showColorImage){
         cvtColor(destColorImage, saveImage, CV_RGB2BGR);
-    else
+        //cvtColor(colorImage, saveImage, CV_RGB2BGR);
+
+    }else{
         cvtColor(destGrayImage, saveImage, CV_GRAY2BGR);
+        //cvtColor(grayImage, saveImage, CV_GRAY2BGR);
+    }
 
     QString fileName = QFileDialog::getSaveFileName(this,
            tr("Save File"), "",
            tr("All Files (*)"));
-
-    try{
-        imwrite(fileName.toStdString(), saveImage);
-    }catch(...){}
+    imwrite(fileName.toStdString(), saveImage);
 
 }
 
@@ -203,60 +201,17 @@ void MainWindow::threshold_image(){
     threshold(grayImage, destGrayImage, valor, 255, THRESH_BINARY);
 }
 
-<<<<<<< HEAD
 
 void MainWindow::equalize_hist(){
 
      equalizeHist(grayImage, destGrayImage);
-=======
-void MainWindow::enlarge_image()
-{
-    if(winSelected){
-        destColorImage.setTo(0); //to put in black
-        destGrayImage.setTo(0);
-
-        float fx = 320./imageWindow.width;
-        float fy = 240./imageWindow.height;
-
-        //Utilizar una imagen auxiliar y copiar el contenido para no perderlo
-        Mat auxDC, auxDG;
-        if(fx <= fy){
-            int x = 0;
-            int y = (240-imageWindow.height*fx)/2;
-
-            auxDC.create(imageWindow.height*fx,320,CV_8UC3);
-            auxDG.create(imageWindow.height*fx,320, CV_8UC1);
-
-            cv::resize(Mat(colorImage, imageWindow), auxDC, Size(), fx, fx);
-            auxDC.copyTo(destColorImage(cv::Rect(x, y, auxDC.cols, auxDC.rows)));
-            cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fx, fx);
-            auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
-        }else{
-            int x = (320-imageWindow.width*fy)/2;
-            int y = 0;
-
-            auxDC.create(240,imageWindow.width*fy,CV_8UC3);
-            auxDG.create(240,imageWindow.width*fy, CV_8UC1);
-
-            cv::resize(Mat(colorImage, imageWindow), auxDC, Size(), fy, fy);
-            auxDC.copyTo(destColorImage(cv::Rect(x, y, auxDC.cols, auxDC.rows)));
-            cv::resize(Mat(grayImage, imageWindow), auxDG, Size(), fy, fy);
-            auxDG.copyTo(destGrayImage(cv::Rect(x, y, auxDG.cols, auxDG.rows)));
-        }
-    }    
->>>>>>> 938d9ac6f25174ac8a9480921414a3e5b22ae7a8
 }
 
 void MainWindow::gaussian_blur(){
 
 }
 
-<<<<<<< HEAD
 void MainWindow::median_blur(){
-=======
-        //Warp
-        auxDial = dialValue*2*PI/360;
->>>>>>> 938d9ac6f25174ac8a9480921414a3e5b22ae7a8
 
 }
 
