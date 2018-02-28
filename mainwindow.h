@@ -108,8 +108,6 @@ public slots:
 
     void read_kernel();
 
-    //Ampliacion
-    void calculateHistogram();
 };
 
 

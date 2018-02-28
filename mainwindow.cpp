@@ -356,16 +356,3 @@ void MainWindow::apply_several(){
 
 }
 
-//Ampliación
-void MainWindow::calculateHistogram(){
-    Mat origHist;
-    float ranges[] = {0 ,256};
-    int channel = 0;
-    int size = 256;
-
-    //cv::calcHist(&grayImage, 1, &channel, Mat(), origHist, 1, &size, &ranges, true, false);
-
-    calcHist(&grayImage, &channel,Mat(), origHist, size, ranges, false);
-
-    origHist.copyTo(destGrayImage);
-}
