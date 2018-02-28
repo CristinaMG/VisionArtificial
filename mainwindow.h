@@ -86,7 +86,7 @@ public slots:
     void load_image();
     void save_image();
 
-    void comboBox_image();
+    void comboBox_image(int index);
 
     void pixel_image();
     void closePixel();
@@ -104,7 +104,12 @@ public slots:
     void dilatation();
     void erosion();
 
+    void apply_several();
+
     void read_kernel();
+
+    //Ampliacion
+    void calculateHistogram();
 };
 
 

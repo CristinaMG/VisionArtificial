@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>860</width>
-    <height>398</height>
+    <height>686</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -105,8 +105,8 @@
   <widget class="QFrame" name="processingFrame">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>290</y>
+     <x>0</x>
+     <y>580</y>
      <width>831</width>
      <height>91</height>
     </rect>
@@ -288,12 +288,22 @@
      <number>3</number>
     </property>
    </widget>
+   <zorder>operationComboBox</zorder>
+   <zorder>operationLabel</zorder>
+   <zorder>gaussianLabel</zorder>
+   <zorder>thresholdSpinBox</zorder>
+   <zorder>gaussianLabel_2</zorder>
+   <zorder>kernelButton</zorder>
+   <zorder>operOrderButton</zorder>
+   <zorder>pixelTButton</zorder>
+   <zorder>gaussWidthBox</zorder>
+   <zorder>label</zorder>
   </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>270</y>
+     <x>320</x>
+     <y>560</y>
      <width>221</width>
      <height>31</height>
     </rect>
@@ -325,6 +335,38 @@
    </property>
    <property name="checked">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QFrame" name="imageFrameSH">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>280</y>
+     <width>320</width>
+     <height>240</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+  </widget>
+  <widget class="QFrame" name="imageFrameDH">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>280</y>
+     <width>320</width>
+     <height>240</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
    </property>
   </widget>
  </widget>

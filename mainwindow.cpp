@@ -84,7 +84,7 @@ void MainWindow::compute()
 
     }
 
-    comboBox_image();
+    comboBox_image(ui->operationComboBox->currentIndex());
 
     if(winSelected)
     {
@@ -92,6 +92,8 @@ void MainWindow::compute()
     }
     visorS->update();
     visorD->update();
+
+    calculateHistogram();
 
 }
 
@@ -195,8 +197,8 @@ void MainWindow::save_image()
 
 }
 
-void MainWindow::comboBox_image(){
-    switch (ui->operationComboBox->currentIndex()) {
+void MainWindow::comboBox_image(int index){
+    switch (index) {
     case 0:
         transformation_pixel();
         break;
@@ -220,6 +222,9 @@ void MainWindow::comboBox_image(){
         break;
     case 7:
         erosion();
+        break;
+    case 8:
+        apply_several();
         break;
     default:
         break;
@@ -259,15 +264,30 @@ void MainWindow::transformation_pixel(){
     Mat lookUpTable(1, 256, CV_8U);
     uchar* p = lookUpTable.ptr();
 
+    float incF = 0.;
+    float origpoint2 = pixelTDialog.origPixelBox2->value();
+    float origpoint3 = pixelTDialog.origPixelBox3->value();
+
+    float newpoint1 = pixelTDialog.newPixelBox1->value();
+    float newpoint2 = pixelTDialog.newPixelBox2->value();
+    float newpoint3 = pixelTDialog.newPixelBox3->value();
+    float newpoint4 = pixelTDialog.newPixelBox4->value();
+
     int i = 0;
-    for(i; i < pixelTDialog.origPixelBox2->value(); ++i)
-        p[i] = i;
+    for(i; i < origpoint2; ++i){
+        incF = ((newpoint2-newpoint1)/origpoint2)*i;
+        p[i] = (uchar)(incF + newpoint1);
+    }
 
-    for(i; i < pixelTDialog.origPixelBox3->value(); ++i)
-        p[i] = i;
+    for(i; i < origpoint3; ++i){
+        incF = ((newpoint3-newpoint2)/(origpoint3-origpoint2))*(i-origpoint2);
+        p[i] = (uchar)(incF + newpoint2);
+    }
 
-    for(i; i < 256; ++i)
-        p[i] = i;
+    for(i; i < 256; ++i){
+        incF = ((newpoint4-newpoint3)/(255-origpoint3))*(i-origpoint3);
+        p[i] = (uchar)(incF + newpoint3);
+    }
 
     LUT(grayImage, lookUpTable, destGrayImage);
 }
@@ -319,4 +339,33 @@ void MainWindow::erosion(){
     Mat copyDest;
     destGrayImage.copyTo(copyDest);
     erode(copyDest, destGrayImage, Mat());
+}
+
+void MainWindow::apply_several(){
+    if(operOrderDialog.firstOperCheckBox->isChecked())
+        comboBox_image(operOrderDialog.operationComboBox1->currentIndex());
+
+    if(operOrderDialog.secondOperCheckBox->isChecked())
+        comboBox_image(operOrderDialog.operationComboBox2->currentIndex());
+
+    if(operOrderDialog.thirdOperCheckBox->isChecked())
+        comboBox_image(operOrderDialog.operationComboBox3->currentIndex());
+
+    if(operOrderDialog.fourthOperCheckBox->isChecked())
+        comboBox_image(operOrderDialog.operationComboBox4->currentIndex());
+
+}
+
+//Ampliación
+void MainWindow::calculateHistogram(){
+    Mat origHist;
+    float ranges[] = {0 ,256};
+    int channel = 0;
+    int size = 256;
+
+    //cv::calcHist(&grayImage, 1, &channel, Mat(), origHist, 1, &size, &ranges, true, false);
+
+    calcHist(&grayImage, &channel,Mat(), origHist, size, ranges, false);
+
+    origHist.copyTo(destGrayImage);
 }
