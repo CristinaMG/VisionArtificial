@@ -95,6 +95,7 @@ public slots:
     void operOrder_image();
     void closeOperOrder();
 
+    void apply_negative(); // Ampliación ------------------------------------
     void transformation_pixel();
     void threshold_image();
     void equalize_hist();
@@ -103,10 +104,14 @@ public slots:
     void lineal_filter();
     void dilatation();
     void erosion();
+    void ellipticalErosion(); // Ampliación ------------------------------------
 
     void apply_several();
 
     void read_kernel();
+
+    void calculateHistogram(); // Ampliación ------------------------------------
+
 
 };
 

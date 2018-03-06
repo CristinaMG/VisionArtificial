@@ -54,7 +54,6 @@ MainWindow::~MainWindow()
     delete visorD;
     delete imgS;
     delete imgD;
-
 }
 
 void MainWindow::compute()
@@ -66,7 +65,6 @@ void MainWindow::compute()
 
         cvtColor(colorImage, grayImage, CV_BGR2GRAY);
         cvtColor(colorImage, colorImage, CV_BGR2RGB);
-
     }
 
 
@@ -94,7 +92,6 @@ void MainWindow::compute()
     visorD->update();
 
     calculateHistogram();
-
 }
 
 void MainWindow::start_stop_capture(bool start)
@@ -181,11 +178,9 @@ void MainWindow::save_image()
     Mat saveImage;
     if(showColorImage){
         cvtColor(destColorImage, saveImage, CV_RGB2BGR);
-        //cvtColor(colorImage, saveImage, CV_RGB2BGR);
 
     }else{
         cvtColor(destGrayImage, saveImage, CV_GRAY2BGR);
-        //cvtColor(grayImage, saveImage, CV_GRAY2BGR);
     }
 
     QString fileName = QFileDialog::getSaveFileName(this,
@@ -224,6 +219,9 @@ void MainWindow::comboBox_image(int index){
         erosion();
         break;
     case 8:
+        ellipticalErosion();
+        break;
+    case 9:
         apply_several();
         break;
     default:
@@ -235,6 +233,7 @@ void MainWindow::comboBox_image(int index){
 void MainWindow::pixel_image(){
     pixelTDialog.show();
     connect(pixelTDialog.okButton,SIGNAL(clicked(bool)),this,SLOT(closePixel()));
+    connect(pixelTDialog.negativeButton, SIGNAL(clicked(bool)), this, SLOT(apply_negative()));
 }
 
 void MainWindow::closePixel(){
@@ -259,11 +258,29 @@ void MainWindow::closeOperOrder(){
     operOrderDialog.close();
 }
 
+void MainWindow::apply_negative(){
+    Mat lookUpTable(1, 256, CV_8U);
+    uchar* p = lookUpTable.ptr();
+
+    int i = 255;
+    for(;i>=0; i--){
+        p[i] = (uchar)(255-i);
+    }
+
+    pixelTDialog.newPixelBox1->setValue(255);
+    pixelTDialog.newPixelBox2->setValue(170);
+    pixelTDialog.newPixelBox3->setValue(85);
+    pixelTDialog.newPixelBox4->setValue(0);
+
+    LUT(grayImage, lookUpTable, destGrayImage);
+}
+
+// Histograma: El ultimo parametro es un array constante
 void MainWindow::transformation_pixel(){
 
     Mat lookUpTable(1, 256, CV_8U);
     uchar* p = lookUpTable.ptr();
-
+    int i;
     float incF = 0.;
     float origpoint2 = pixelTDialog.origPixelBox2->value();
     float origpoint3 = pixelTDialog.origPixelBox3->value();
@@ -273,18 +290,18 @@ void MainWindow::transformation_pixel(){
     float newpoint3 = pixelTDialog.newPixelBox3->value();
     float newpoint4 = pixelTDialog.newPixelBox4->value();
 
-    int i = 0;
-    for(i; i < origpoint2; ++i){
+    i = 0;
+    for(; i < origpoint2; i++){
         incF = ((newpoint2-newpoint1)/origpoint2)*i;
         p[i] = (uchar)(incF + newpoint1);
     }
 
-    for(i; i < origpoint3; ++i){
+    for(; i < origpoint3; i++){
         incF = ((newpoint3-newpoint2)/(origpoint3-origpoint2))*(i-origpoint2);
         p[i] = (uchar)(incF + newpoint2);
     }
 
-    for(i; i < 256; ++i){
+    for(; i < 256; i++){
         incF = ((newpoint4-newpoint3)/(255-origpoint3))*(i-origpoint3);
         p[i] = (uchar)(incF + newpoint3);
     }
@@ -310,7 +327,6 @@ void MainWindow::median_blur(){
 }
 
 void MainWindow::read_kernel(){
-    //at(fila, columna)
     kernel.at<float>(0,0) = lFilterDialog.kernelBox11->value();
     kernel.at<float>(0,1) = lFilterDialog.kernelBox12->value();
     kernel.at<float>(0,2) = lFilterDialog.kernelBox13->value();
@@ -341,6 +357,14 @@ void MainWindow::erosion(){
     erode(copyDest, destGrayImage, Mat());
 }
 
+void MainWindow::ellipticalErosion(){
+    threshold_image();
+    Mat copyDest;
+    destGrayImage.copyTo(copyDest);
+    Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
+    erode(copyDest, destGrayImage, kernel);
+}
+
 void MainWindow::apply_several(){
     if(operOrderDialog.firstOperCheckBox->isChecked())
         comboBox_image(operOrderDialog.operationComboBox1->currentIndex());
@@ -353,6 +377,43 @@ void MainWindow::apply_several(){
 
     if(operOrderDialog.fourthOperCheckBox->isChecked())
         comboBox_image(operOrderDialog.operationComboBox4->currentIndex());
-
 }
 
+
+void MainWindow::calculateHistogram(){
+    Mat origHist, destHist;
+    float ranges[] = {0 ,256};
+    const float * arr_ranges[] = {ranges};
+    int channel = 0;
+    int size = 256;
+
+    cv::calcHist(&grayImage, 1, &channel, Mat(), origHist, 1, &size, arr_ranges);
+
+    Mat histS(100, 320, CV_8UC1, cv::Scalar(255));
+    cv::normalize(origHist, origHist, 0, 100, cv::NORM_MINMAX);
+
+    int hpt = static_cast<int>(0.9*256);
+    for(int i= 1; i<256; i++){
+        float binVal = origHist.at<float>(i);
+        int intensity = static_cast<int>(binVal*hpt/100);
+        cv::line(histS, cv::Point(i, 256), cv::Point(i,256-intensity),cv::Scalar::all(0));
+    }
+
+    cv::imshow("histogram Source", histS);
+
+
+    cv::calcHist(&destGrayImage, 1, &channel, Mat(), destHist, 1, &size, arr_ranges);
+
+    Mat histD(100, 320, CV_8UC1, cv::Scalar(255));
+    cv::normalize(destHist, destHist, 0, 100, cv::NORM_MINMAX);
+
+    int hptD = static_cast<int>(0.9*256);
+    for(int i= 1; i<256; i++){
+        float binValD = origHist.at<float>(i);
+        int intensityD = static_cast<int>(binValD*hptD/100);
+        cv::line(histD, cv::Point(i, 256), cv::Point(i,256-intensityD),cv::Scalar::all(0));
+    }
+
+    cv::imshow("histogram Dest", histD);
+
+}

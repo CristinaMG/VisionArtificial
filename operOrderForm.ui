@@ -65,7 +65,12 @@
    </item>
    <item>
     <property name="text">
-     <string>Erode</string>
+     <string>Square erode</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Elliptical erode</string>
     </property>
    </item>
   </widget>
@@ -121,7 +126,12 @@
    </item>
    <item>
     <property name="text">
-     <string>Erode</string>
+     <string>Square erode</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Elliptical erode</string>
     </property>
    </item>
   </widget>
@@ -177,7 +187,12 @@
    </item>
    <item>
     <property name="text">
-     <string>Erode</string>
+     <string>Square erode</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Elliptical erode</string>
     </property>
    </item>
   </widget>
@@ -230,7 +245,12 @@
    </item>
    <item>
     <property name="text">
-     <string>Erode</string>
+     <string>Square erode</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Elliptical erode</string>
     </property>
    </item>
   </widget>
