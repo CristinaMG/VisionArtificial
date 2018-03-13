@@ -337,7 +337,7 @@
     <rect>
      <x>20</x>
      <y>290</y>
-     <width>320</width>
+     <width>256</width>
      <height>100</height>
     </rect>
    </property>
@@ -353,7 +353,7 @@
     <rect>
      <x>390</x>
      <y>290</y>
-     <width>320</width>
+     <width>256</width>
      <height>100</height>
     </rect>
    </property>

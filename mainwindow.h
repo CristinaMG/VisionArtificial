@@ -66,9 +66,12 @@ private:
 
     VideoCapture *cap;
     RCDraw *visorS, *visorD;
+    RCDraw *visorHistS, *visorHistD;
     QImage *imgS, *imgD;
+    QImage *imgHistS, *imgHistD;
     Mat colorImage, grayImage, destColorImage, destGrayImage;
     Mat gray2ColorImage, destGray2ColorImage;
+    Mat histS, histD;
     bool capture, showColorImage, winSelected;
     Rect imageWindow;
     PixelTDialog pixelTDialog;

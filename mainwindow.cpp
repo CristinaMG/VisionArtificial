@@ -21,6 +21,11 @@ MainWindow::MainWindow(QWidget *parent) :
     imgD = new QImage(320,240, QImage::Format_RGB888);
     visorD = new RCDraw(320,240, imgD, ui->imageFrameD);
 
+    imgHistS = new QImage(256,100, QImage::Format_RGB888);
+    visorHistS = new RCDraw(256,100, imgHistS, ui->histS);
+    imgHistD = new QImage(256,100, QImage::Format_RGB888);
+    visorHistD = new RCDraw(256,100, imgHistD, ui->histD);
+
     colorImage.create(240,320,CV_8UC3);
     grayImage.create(240,320,CV_8UC1);
     destColorImage.create(240,320,CV_8UC3);
@@ -29,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
     destGray2ColorImage.create(240,320,CV_8UC3);
 
     kernel.create(3,3,CV_32FC1);
+
+    histD.create(100, 256, CV_8UC1);
+    histS.create(100, 256, CV_8UC1);
 
     connect(&timer,SIGNAL(timeout()),this,SLOT(compute()));
     connect(ui->captureButton,SIGNAL(clicked(bool)),this,SLOT(start_stop_capture(bool)));
@@ -52,6 +60,8 @@ MainWindow::~MainWindow()
     delete cap;
     delete visorS;
     delete visorD;
+    delete visorHistS;
+    delete visorHistD;
     delete imgS;
     delete imgD;
 }
@@ -79,7 +89,8 @@ void MainWindow::compute()
         cvtColor(destGrayImage,destGray2ColorImage, CV_GRAY2RGB);
         memcpy(imgS->bits(), gray2ColorImage.data , 320*240*3*sizeof(uchar));
         memcpy(imgD->bits(), destGray2ColorImage.data , 320*240*3*sizeof(uchar));
-
+        memcpy(imgHistS->bits(), histS.data , 256*100*sizeof(float));
+        memcpy(imgHistD->bits(), histD.data , 256*100*sizeof(float));
     }
 
     comboBox_image(ui->operationComboBox->currentIndex());
@@ -92,6 +103,10 @@ void MainWindow::compute()
     visorD->update();
 
     calculateHistogram();
+
+    visorHistS->update();
+    visorHistD->update();
+
 }
 
 void MainWindow::start_stop_capture(bool start)
@@ -382,38 +397,69 @@ void MainWindow::apply_several(){
 
 void MainWindow::calculateHistogram(){
     Mat origHist, destHist;
-    float ranges[] = {0 ,256};
+    float ranges[] = {0 ,255};
     const float * arr_ranges[] = {ranges};
     int channel = 0;
     int size = 256;
 
+    Mat histS(100, 256, CV_8UC1, Scalar(255));
+    Mat histD(100, 256, CV_8UC1, Scalar(255));
+    //Repetir los parametros de arriba
+    int bin_w = 2;
+
     cv::calcHist(&grayImage, 1, &channel, Mat(), origHist, 1, &size, arr_ranges);
 
-    Mat histS(100, 320, CV_8UC1, cv::Scalar(255));
-    cv::normalize(origHist, origHist, 0, 100, cv::NORM_MINMAX);
-
-    int hpt = static_cast<int>(0.9*256);
-    for(int i= 1; i<256; i++){
-        float binVal = origHist.at<float>(i);
-        int intensity = static_cast<int>(binVal*hpt/100);
-        cv::line(histS, cv::Point(i, 256), cv::Point(i,256-intensity),cv::Scalar::all(0));
+    //Calculate max
+    int max = origHist.at<float>(0);
+    for(int i = 0; i < 256; i++){
+        if(max < origHist.at<float>(i)){
+            max = origHist.at<float>(i);
+        }
+        //qDebug()<< i << origHist.at<float>(i);
     }
 
+    //Normalize
+    for(int i = 0; i < 256; i++){
+        origHist.at<float>(i) = ((double)origHist.at<float>(i)*histS.rows/max);
+    }
+
+    for(int i = 0; i < 256; i++){
+        line(histS, Point(bin_w*(i), 100),
+        Point(bin_w*(i), 100 - origHist.at<float>(i)),
+        Scalar(0,0,0), 1, 8, 0);
+    }
+
+    //Show
     cv::imshow("histogram Source", histS);
 
+    float ranges2[] = {0 ,255};
+    const float * arr_ranges2[] = {ranges2};
+    int channel2 = 0;
+    int size2 = 256;
 
-    cv::calcHist(&destGrayImage, 1, &channel, Mat(), destHist, 1, &size, arr_ranges);
+    cv::calcHist(&destGrayImage, 1, &channel2, Mat(), destHist, 1, &size2, arr_ranges2);
 
-    Mat histD(100, 320, CV_8UC1, cv::Scalar(255));
-    cv::normalize(destHist, destHist, 0, 100, cv::NORM_MINMAX);
-
-    int hptD = static_cast<int>(0.9*256);
-    for(int i= 1; i<256; i++){
-        float binValD = origHist.at<float>(i);
-        int intensityD = static_cast<int>(binValD*hptD/100);
-        cv::line(histD, cv::Point(i, 256), cv::Point(i,256-intensityD),cv::Scalar::all(0));
+    //Calculate max
+    max = destHist.at<float>(0);
+    for(int i = 0; i < 256; i++){
+        if(max < destHist.at<float>(i)){
+            max = destHist.at<float>(i);
+        }
+        //qDebug()<< i << destHist.at<float>(i);
     }
 
+    //Normalize
+    for(int i = 0; i < 256; i++){
+        destHist.at<float>(i) = ((double)destHist.at<float>(i)*histD.rows/max);
+    }
+
+    for(int i = 0; i < 256; i++){
+        line(histD, Point(bin_w*(i), 100),
+        Point(bin_w*(i), 100 - destHist.at<float>(i)),
+        Scalar(0,0,0), 1, 8, 0);
+    }
+
+    //Show
     cv::imshow("histogram Dest", histD);
 
 }
